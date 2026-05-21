@@ -1,0 +1,28 @@
+{
+  "name": "latex-calculator-web-vue",
+  "version": "0.2.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "predev": "node ../scripts/build-web-vue-runtime.js",
+    "prebuild": "node ../scripts/build-web-vue-runtime.js",
+    "prepreview": "node ../scripts/build-web-vue-runtime.js",
+    "dev": "vite",
+    "build": "vite build",
+    "build:standalone": "npm run build && node ../scripts/build-web-vue-standalone.js",
+    "preview": "vite preview",
+    "android:sync": "npm run build && npx cap sync android",
+    "android:open": "npx cap open android",
+    "android:apk:debug": "npm run build && npx cap sync android && cd android && gradlew.bat assembleDebug"
+  },
+  "dependencies": {
+    "@capacitor/android": "^8.3.1",
+    "@capacitor/core": "^8.3.1",
+    "vue": "^3.5.13"
+  },
+  "devDependencies": {
+    "@capacitor/cli": "^8.3.1",
+    "@vitejs/plugin-vue": "^5.2.1",
+    "vite": "^6.3.5"
+  }
+}

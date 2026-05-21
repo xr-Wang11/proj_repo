@@ -1,0 +1,540 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>LaTeX 计算器</title>
+    <style>
+      :root {
+        --bg: #f3efe5;
+        --panel: rgba(255, 252, 245, 0.94);
+        --panel-strong: #fffaf2;
+        --line: #d6ccb6;
+        --ink: #1f2426;
+        --muted: #5f686f;
+        --accent: #8a4d14;
+        --accent-soft: #f2dcc2;
+        --danger: #a53a24;
+        --ok: #25604a;
+        --shadow: 0 18px 42px rgba(48, 38, 24, 0.12);
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      body {
+        margin: 0;
+        min-height: 100vh;
+        color: var(--ink);
+        font-family: "Microsoft YaHei", "Segoe UI", sans-serif;
+        background:
+          radial-gradient(circle at top left, rgba(227, 182, 119, 0.35), transparent 28%),
+          radial-gradient(circle at bottom right, rgba(112, 137, 170, 0.18), transparent 26%),
+          linear-gradient(180deg, #f8f4ec 0%, var(--bg) 100%);
+      }
+
+      .shell {
+        width: min(1240px, calc(100vw - 28px));
+        margin: 22px auto;
+        padding: 18px;
+      }
+
+      .header {
+        display: flex;
+        align-items: end;
+        justify-content: space-between;
+        gap: 16px;
+        margin-bottom: 18px;
+      }
+
+      .title {
+        margin: 0;
+        font-size: clamp(28px, 4vw, 44px);
+        letter-spacing: 0.04em;
+      }
+
+      .subtitle {
+        margin: 6px 0 0;
+        color: var(--muted);
+        line-height: 1.6;
+      }
+
+      .grid {
+        display: grid;
+        grid-template-columns: minmax(0, 1.5fr) minmax(340px, 0.95fr);
+        gap: 18px;
+      }
+
+      .panel {
+        border: 1px solid var(--line);
+        border-radius: 24px;
+        background: var(--panel);
+        box-shadow: var(--shadow);
+        backdrop-filter: blur(8px);
+      }
+
+      .workspace,
+      .status-card,
+      .info-card {
+        padding: 18px;
+      }
+
+      .panel-title {
+        margin: 0 0 10px;
+        font-size: 15px;
+        color: var(--muted);
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+      }
+
+      .expression-wrap,
+      .select-card,
+      .button-panel,
+      .status-box,
+      .function-panel,
+      .function-item,
+      .json-panel {
+        border: 1px solid var(--line);
+        border-radius: 18px;
+        background: var(--panel-strong);
+      }
+
+      .expression-wrap {
+        padding: 14px;
+      }
+
+      textarea,
+      input {
+        width: 100%;
+        border: none;
+        outline: none;
+        background: transparent;
+        color: var(--ink);
+        font: inherit;
+      }
+
+      #expressionInput {
+        min-height: 120px;
+        resize: vertical;
+        font: 600 26px/1.45 "Consolas", "Courier New", monospace;
+      }
+
+      .hint,
+      .function-status,
+      .function-empty {
+        margin-top: 10px;
+        color: var(--muted);
+        font-size: 14px;
+      }
+
+      .toolbar {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 12px;
+        margin-top: 16px;
+      }
+
+      .select-card,
+      .function-panel,
+      .json-panel {
+        padding: 12px 14px;
+      }
+
+      label {
+        display: block;
+        margin-bottom: 8px;
+        color: var(--muted);
+        font-size: 13px;
+      }
+
+      select,
+      .field-input,
+      .json-textarea {
+        width: 100%;
+        border: 1px solid var(--line);
+        border-radius: 12px;
+        padding: 10px 12px;
+        font: inherit;
+        background: #fff;
+      }
+
+      .json-textarea {
+        min-height: 140px;
+        resize: vertical;
+        font-family: "Consolas", "Courier New", monospace;
+      }
+
+      .button-panel {
+        margin-top: 16px;
+        padding: 16px;
+      }
+
+      .button-group + .button-group,
+      .function-panel + .function-panel,
+      .json-panel + .json-panel {
+        margin-top: 14px;
+      }
+
+      .group-label {
+        margin-bottom: 8px;
+        color: var(--muted);
+        font-size: 13px;
+      }
+
+      .button-row,
+      .function-actions,
+      .json-actions {
+        display: grid;
+        gap: 8px;
+      }
+
+      .button-row {
+        grid-template-columns: repeat(5, minmax(0, 1fr));
+      }
+
+      .function-actions,
+      .json-actions {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+
+      button {
+        border: 1px solid var(--line);
+        border-radius: 14px;
+        padding: 10px 8px;
+        background: #fff;
+        color: var(--ink);
+        font: 600 15px/1.1 inherit;
+        cursor: pointer;
+        transition: transform 140ms ease, border-color 140ms ease, background 140ms ease;
+      }
+
+      button:hover {
+        transform: translateY(-1px);
+        border-color: var(--accent);
+        background: var(--accent-soft);
+      }
+
+      button[data-tone="accent"] {
+        background: #2f2a24;
+        color: #fff8ef;
+        border-color: #2f2a24;
+      }
+
+      button[data-tone="danger"] {
+        color: var(--danger);
+      }
+
+      .sidebar {
+        display: grid;
+        gap: 18px;
+      }
+
+      .status-box + .status-box {
+        margin-top: 12px;
+      }
+
+      .status-box {
+        padding: 14px;
+      }
+
+      .status-label {
+        margin-bottom: 8px;
+        color: var(--muted);
+        font-size: 13px;
+      }
+
+      .status-value,
+      .function-item-body {
+        white-space: pre-wrap;
+        word-break: break-word;
+        font: 600 16px/1.5 "Consolas", "Courier New", monospace;
+      }
+
+      .error-value {
+        color: var(--danger);
+      }
+
+      .function-stack {
+        display: grid;
+        gap: 12px;
+      }
+
+      .function-fields {
+        display: grid;
+        gap: 12px;
+      }
+
+      .function-status[data-tone="success"] {
+        color: var(--ok);
+      }
+
+      .function-status[data-tone="error"] {
+        color: var(--danger);
+      }
+
+      .function-item {
+        padding: 12px;
+      }
+
+      .function-item-header {
+        display: flex;
+        justify-content: space-between;
+        gap: 12px;
+        align-items: start;
+        margin-bottom: 10px;
+      }
+
+      .function-item-title {
+        font-weight: 700;
+      }
+
+      .function-item-actions {
+        display: flex;
+        gap: 8px;
+        flex-wrap: wrap;
+      }
+
+      .function-item-actions button {
+        padding-inline: 12px;
+      }
+
+      .info-list {
+        margin: 0;
+        padding-left: 18px;
+        color: var(--muted);
+        line-height: 1.6;
+      }
+
+      @media (max-width: 960px) {
+        .grid {
+          grid-template-columns: 1fr;
+        }
+      }
+
+      @media (max-width: 640px) {
+        .shell {
+          width: calc(100vw - 16px);
+          margin: 10px auto;
+          padding: 8px;
+        }
+
+        .toolbar,
+        .function-actions,
+        .json-actions {
+          grid-template-columns: 1fr;
+        }
+
+        .button-row {
+          grid-template-columns: repeat(4, minmax(0, 1fr));
+        }
+
+        #expressionInput {
+          min-height: 96px;
+          font-size: 22px;
+        }
+
+        .function-item-header {
+          flex-direction: column;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="shell">
+      <div class="header">
+        <div>
+          <h1 class="title">LaTeX 计算器</h1>
+          <p class="subtitle">
+            键盘负责输入数字、字母、下划线与小数点；运算符和函数通过按钮插入。
+            当前版本已经接入表达式解析、复数计算、相量转换、LaTeX 字符串生成，以及用户函数保存与复用。
+          </p>
+        </div>
+      </div>
+
+      <div class="grid">
+        <section class="panel workspace">
+          <h2 class="panel-title">输入区</h2>
+          <div class="expression-wrap">
+            <textarea id="expressionInput" spellcheck="false" placeholder="例如：3 + 4*i"></textarea>
+          </div>
+          <div id="keyboardHint" class="hint"></div>
+
+          <div class="toolbar">
+            <div class="select-card">
+              <label for="displayMode">结果显示模式</label>
+              <select id="displayMode">
+                <option value="plain">普通</option>
+                <option value="rect">直角坐标</option>
+                <option value="polar">相量</option>
+                <option value="debug">调试</option>
+              </select>
+            </div>
+            <div class="select-card">
+              <label for="angleUnit">角度单位</label>
+              <select id="angleUnit">
+                <option value="rad">弧度</option>
+                <option value="deg">角度</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="button-panel" id="buttonBar">
+            <div class="button-group">
+              <div class="group-label">运算符</div>
+              <div class="button-row">
+                <button data-button-key="plus">+</button>
+                <button data-button-key="minus">-</button>
+                <button data-button-key="multiply">*</button>
+                <button data-button-key="divide">/</button>
+                <button data-button-key="power">^</button>
+              </div>
+            </div>
+
+            <div class="button-group">
+              <div class="group-label">结构</div>
+              <div class="button-row">
+                <button data-button-key="lparen">(</button>
+                <button data-button-key="rparen">)</button>
+                <button data-button-key="comma">,</button>
+                <button id="backspaceButton" type="button" data-tone="accent">退格</button>
+                <button id="clearButton" type="button" data-tone="accent">清空</button>
+              </div>
+            </div>
+
+            <div class="button-group">
+              <div class="group-label">函数</div>
+              <div class="button-row">
+                <button data-button-key="sin">sin</button>
+                <button data-button-key="cos">cos</button>
+                <button data-button-key="tan">tan</button>
+                <button data-button-key="sqrt">sqrt</button>
+                <button data-button-key="exp">exp</button>
+              </div>
+            </div>
+
+            <div class="button-group">
+              <div class="group-label">对数与分量</div>
+              <div class="button-row">
+                <button data-button-key="ln">ln</button>
+                <button data-button-key="lg">lg</button>
+                <button data-button-key="re">re</button>
+                <button data-button-key="im">im</button>
+              </div>
+            </div>
+
+            <div class="button-group">
+              <div class="group-label">复数与转换</div>
+              <div class="button-row">
+                <button data-button-key="abs">abs</button>
+                <button data-button-key="arg">arg</button>
+                <button data-button-key="conj">conj</button>
+                <button data-button-key="rect">rect</button>
+                <button data-button-key="polar">polar</button>
+              </div>
+            </div>
+
+            <div class="button-group">
+              <div class="group-label">常量</div>
+              <div class="button-row">
+                <button data-button-key="to_rect">转直角</button>
+                <button data-button-key="to_polar">转相量</button>
+                <button data-button-key="pi">&pi;</button>
+                <button data-button-key="e">e</button>
+                <button data-button-key="i">i</button>
+              </div>
+            </div>
+
+            <div class="button-group">
+              <div class="group-label">角度单位</div>
+              <div class="button-row">
+                <button data-button-key="deg">deg</button>
+                <button data-button-key="rad">rad</button>
+              </div>
+            </div>
+          </div>
+
+          <div id="buttonHint" class="hint"></div>
+
+          <div class="function-panel">
+            <h2 class="panel-title">保存函数</h2>
+            <div class="function-fields">
+              <div>
+                <label for="functionNameInput">函数名</label>
+                <input id="functionNameInput" class="field-input" placeholder="例如：f_power" />
+              </div>
+              <div>
+                <label for="functionParamsInput">参数列表</label>
+                <input id="functionParamsInput" class="field-input" placeholder="例如：u, i_load" />
+              </div>
+            </div>
+            <div class="hint">函数体直接使用当前表达式输入框中的内容。</div>
+            <div class="function-actions">
+              <button id="functionSaveButton" type="button" data-tone="accent">保存当前表达式为函数</button>
+              <button id="functionResetButton" type="button">清空函数表单</button>
+            </div>
+            <div id="functionStatus" class="function-status" data-tone="muted"></div>
+          </div>
+        </section>
+
+        <aside class="sidebar">
+          <section class="panel status-card">
+            <h2 class="panel-title">表达式状态</h2>
+            <div class="status-box">
+              <div class="status-label">表达式 LaTeX 字符串</div>
+              <div id="latexExpression" class="status-value"></div>
+            </div>
+            <div class="status-box">
+              <div class="status-label">结果文本</div>
+              <div id="resultText" class="status-value"></div>
+            </div>
+            <div class="status-box">
+              <div class="status-label">结果 LaTeX 字符串</div>
+              <div id="resultLatex" class="status-value"></div>
+            </div>
+          </section>
+
+          <section class="panel status-card">
+            <h2 class="panel-title">错误状态</h2>
+            <div class="status-box">
+              <div class="status-label">解析错误</div>
+              <div id="parseError" class="status-value error-value"></div>
+            </div>
+            <div class="status-box">
+              <div class="status-label">求值错误</div>
+              <div id="evaluationError" class="status-value error-value"></div>
+            </div>
+          </section>
+
+          <section class="panel info-card">
+            <h2 class="panel-title">已保存函数</h2>
+            <div id="savedFunctionList" class="function-stack"></div>
+          </section>
+
+          <section class="panel info-card">
+            <h2 class="panel-title">导入导出</h2>
+            <div class="json-panel">
+              <label for="functionJsonArea">用户函数 JSON</label>
+              <textarea id="functionJsonArea" class="json-textarea" spellcheck="false"></textarea>
+              <div class="json-actions">
+                <button id="exportFunctionsButton" type="button">导出到文本框</button>
+                <button id="importFunctionsButton" type="button">从文本框导入</button>
+              </div>
+            </div>
+          </section>
+
+          <section class="panel info-card">
+            <h2 class="panel-title">说明</h2>
+            <ul class="info-list">
+              <li>当前页面直接使用项目核心模块，不依赖前端框架。</li>
+              <li>LaTeX 结果目前以字符串形式展示，后续可直接接 KaTeX 或 MathJax。</li>
+              <li>用户函数保存在浏览器本地存储，刷新页面后仍可继续使用。</li>
+            </ul>
+          </section>
+        </aside>
+      </div>
+    </div>
+
+    <script src="./app.bundle.js"></script>
+  </body>
+</html>

@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>变量命名规则 Demo</title>
+    <style>
+      :root {
+        color-scheme: light;
+        --bg: #f5f1e8;
+        --panel: #fffdf8;
+        --ink: #182126;
+        --muted: #5e6a70;
+        --ok: #1f7a49;
+        --bad: #a53824;
+        --line: #d9d1c1;
+        --accent: #8c4c1d;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      body {
+        margin: 0;
+        min-height: 100vh;
+        font-family: "Microsoft YaHei", "Segoe UI", sans-serif;
+        color: var(--ink);
+        background:
+          radial-gradient(circle at top left, #f0dcb8 0, transparent 30%),
+          linear-gradient(180deg, #f9f5ec 0%, var(--bg) 100%);
+      }
+
+      main {
+        width: min(900px, calc(100vw - 32px));
+        margin: 40px auto;
+        padding: 28px;
+        border: 1px solid var(--line);
+        border-radius: 20px;
+        background: var(--panel);
+        box-shadow: 0 18px 48px rgba(24, 33, 38, 0.08);
+      }
+
+      h1 {
+        margin: 0 0 8px;
+        font-size: 32px;
+      }
+
+      p {
+        color: var(--muted);
+        line-height: 1.5;
+      }
+
+      .row {
+        display: grid;
+        grid-template-columns: 1fr auto;
+        gap: 12px;
+        margin: 24px 0 18px;
+      }
+
+      input,
+      button {
+        border-radius: 12px;
+        border: 1px solid var(--line);
+        font: inherit;
+      }
+
+      input {
+        padding: 14px 16px;
+        background: #fff;
+      }
+
+      button {
+        padding: 14px 18px;
+        color: #fff;
+        background: var(--accent);
+        cursor: pointer;
+      }
+
+      button:hover {
+        filter: brightness(1.05);
+      }
+
+      .status {
+        padding: 16px;
+        border-radius: 14px;
+        border: 1px solid var(--line);
+        background: #fff;
+      }
+
+      .status.ok {
+        border-color: color-mix(in srgb, var(--ok) 35%, white);
+        background: color-mix(in srgb, var(--ok) 8%, white);
+      }
+
+      .status.bad {
+        border-color: color-mix(in srgb, var(--bad) 35%, white);
+        background: color-mix(in srgb, var(--bad) 8%, white);
+      }
+
+      .examples {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+        gap: 12px;
+        margin-top: 22px;
+      }
+
+      .card {
+        padding: 14px;
+        border: 1px solid var(--line);
+        border-radius: 14px;
+        background: #fff;
+      }
+
+      .chip {
+        display: inline-block;
+        margin: 6px 6px 0 0;
+        padding: 6px 10px;
+        border-radius: 999px;
+        background: #efe7d6;
+        cursor: pointer;
+      }
+
+      ul {
+        margin: 10px 0 0;
+        padding-left: 18px;
+      }
+    </style>
+  </head>
+  <body>
+    <main>
+      <h1>变量命名规则 Demo</h1>
+      <p>
+        这个页面用于固定第一阶段的变量命名规则。输入一个名称后，可以直接看到它为什么通过或为什么被拒绝。
+      </p>
+
+      <div class="row">
+        <input id="nameInput" type="text" value="phase_a" spellcheck="false" />
+        <button id="validateButton" type="button">校验</button>
+      </div>
+
+      <section id="status" class="status"></section>
+
+      <section class="examples">
+        <div class="card">
+          <strong>合法示例</strong>
+          <div>
+            <span class="chip" data-value="x">x</span>
+            <span class="chip" data-value="voltage">voltage</span>
+            <span class="chip" data-value="phase_a">phase_a</span>
+            <span class="chip" data-value="z1">z1</span>
+          </div>
+        </div>
+        <div class="card">
+          <strong>非法示例</strong>
+          <div>
+            <span class="chip" data-value="1x">1x</span>
+            <span class="chip" data-value="PhaseA">PhaseA</span>
+            <span class="chip" data-value="phase__a">phase__a</span>
+            <span class="chip" data-value="pi">pi</span>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <script src="../core/model/identifierRules.js"></script>
+    <script>
+      const input = document.getElementById("nameInput");
+      const button = document.getElementById("validateButton");
+      const status = document.getElementById("status");
+      const chips = Array.from(document.querySelectorAll(".chip"));
+
+      function renderResult() {
+        const result = window.IdentifierRules.validateVariableName(input.value);
+        const ruleItems = result.rules.map((rule) => `<li>${rule}</li>`).join("");
+        const reasonItems = result.reasons.map((reason) => `<li>${reason}</li>`).join("");
+
+        status.className = `status ${result.valid ? "ok" : "bad"}`;
+        status.innerHTML = `
+          <strong>${result.message}</strong>
+          <div>规范化结果：<code>${result.normalizedName || "空"}</code></div>
+          ${result.reasons.length ? `<ul>${reasonItems}</ul>` : `<p>没有发现违规项</p>`}
+          <p><strong>规则摘要</strong></p>
+          <ul>${ruleItems}</ul>
+        `;
+      }
+
+      button.addEventListener("click", renderResult);
+      input.addEventListener("input", renderResult);
+
+      for (const chip of chips) {
+        chip.addEventListener("click", () => {
+          input.value = chip.dataset.value;
+          renderResult();
+        });
+      }
+
+      renderResult();
+    </script>
+  </body>
+</html>

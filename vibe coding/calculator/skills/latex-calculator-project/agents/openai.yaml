@@ -1,0 +1,4 @@
+interface:
+  display_name: "LaTeX Calculator Project"
+  short_description: "Continue this calculator repo with current architecture."
+  default_prompt: "Use -calculator-project to continue work on this calculator repository with the established project context and constraints."
