@@ -4,7 +4,12 @@
 
 ## 文件说明
 
-- `call_model.py`：主程序，负责读取配置、创建客户端、调用模型。
+- `call_model.py`：程序入口，只负责启动主流程。
+- `app.py`：主流程编排，负责串联参数、配置、客户端、模型选择和对话模式。
+- `cli.py`：命令行参数定义，例如 `--prompt`、`--model`、`--chat`、`--list-models`。
+- `config.py`：读取 `info.txt`、环境变量和命令行参数，并处理配置优先级。
+- `model_client.py`：创建 OpenAI-compatible 客户端，读取模型列表，发起模型请求。
+- `chat.py`：单轮问答和连续对话逻辑。
 - `info.txt`：本地配置文件，可填写接口地址、默认模型和 API key。
 - `requirements.txt`：Python 依赖列表。
 
