@@ -1,3 +1,3 @@
-url=https://ai.tju.edu.cn/api/v3/
-model=tju-llm
-api_key=tk-RytM_W1cWuoGQze01Z3eRHfNPeke_p1-cKyTuqUUrAP657pr
+url=
+model=
+api_key=
